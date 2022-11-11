@@ -2,11 +2,14 @@
 #include <vector>
 #include <bitset>
 
-#define ONE_D_SIZE 64
-#define ONE_D_NUM_GENERATIONS 32
 
+//one-dimensional size has a maximum of 64 due to bitset data structure limitations
+#define ONE_D_SIZE 64
+
+//function templates
 void display_generation_one_dim(std::bitset<ONE_D_SIZE> line);
 int one_dimensional_simulation(int rule_num);
+int conways_game_of_life();
 
 int main(){
 
@@ -25,6 +28,9 @@ int main(){
 
 
 int one_dimensional_simulation(int rule_num){
+
+	#define ONE_D_NUM_GENERATIONS 32
+
 	//1D simulation
 
 	if(rule_num < 0 || rule_num > 255){
@@ -37,8 +43,6 @@ int one_dimensional_simulation(int rule_num){
 	std::bitset<3> pattern;
 
 	parent[ONE_D_SIZE/2] = 1;
-
-	int neighbour_count;
 
 	display_generation_one_dim(parent);
 	std::cout<<std::endl;
@@ -60,6 +64,10 @@ int one_dimensional_simulation(int rule_num){
 	}
 
 	return 0;
+}
+
+int conways_game_of_life(){
+
 }
 
 
