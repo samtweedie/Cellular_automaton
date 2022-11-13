@@ -350,6 +350,10 @@ void display_generation_two_dim(int grid[y_dim][x_dim]){
 //file needs to be 60 rows and 120 columns, non-delimited
 int read_from_file(std::string file_name, int (&grid)[y_dim][x_dim]){
 	FILE *input_file = fopen(file_name.c_str(), "r");
+	if(input_file == NULL) //if file does not exist or error accessing file
+	{
+		return 1;
+	}
 	for(int i = 0; i < y_dim; i++){
 		for(int j = 0; j < x_dim; j++){
 			grid[i][j] = fgetc(input_file) - '0';
