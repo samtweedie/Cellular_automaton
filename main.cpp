@@ -15,7 +15,7 @@
 void display_generation_one_dim(std::bitset<ONE_D_SIZE> line);
 void display_generation_two_dim(int grid[y_dim][x_dim]);
 int one_dimensional_simulation(int rule_num);
-int conways_game_of_life(bool is_three_d);
+int conways_game_of_life(bool is_three_d, bool is_random);
 int count_neighbours(int grid[y_dim][x_dim], int x, int y, bool is_three_d);
 int read_from_file(std::string file_name, int (&grid)[y_dim][x_dim]);
 
@@ -30,39 +30,94 @@ int main(){
 
 	/*
 	TO-DO
-	-add functionality to let user decide if they want random seed or seed from file
-	-create more files (see conways game of life wiki for seeds)
-	-add error checking to read from file function (file not found or wrong formatting etc)
+	-add functionality to let user decide if they want random seed or seed from file - DONE
+	-create more files (see conways game of life wiki for seeds) - DONE
+	-add error checking to read from file function (file not found or wrong formatting etc) ********
 	-finish menu system
-		-let user pick 1D, 2D or 3D simulation
-		-let user change simulation variables (number of generations, time between generations, ruleset for 1D)
+		-let user pick 1D, 2D or 3D simulation - DONE
+		-let user change simulation variables (number of generations, time between generations, ruleset for 1D) - DONE
 		 *x and y dimensions must stay constant*
-	-add functionality to let user save seed from simulation
+	-add functionality to let user save seed from simulation **********
 
 	whatever else you think of which would be good to add
 	*/
 
-	
-	//1D simulation
-	system("clear");
-	std::cout<<"-------- One dimensional cellular automaton --------" << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	if (one_dimensional_simulation(30) == 1){
-		std::cout<<"Rule not valid - rule must be between 0 and 255 inclusive!" << std::endl;
+	bool running = true;
+
+	while(running){
+		int option = 0;
+		std::cout<<"Cellular Automaton" << std::endl << std::endl;
+		std::cout<< "[1] 1-Dimensional Simulation" << std::endl;
+		std::cout<< "[2] 2-D Conways Game of Life" << std::endl;
+		std::cout<< "[3] 3-D Conways Game of Life" << std::endl;
+		std::cout<< "[4] Quit" << std::endl;
+		std::cout<< ">";
+		std::cin >> option;
+
+		switch(option){
+			int rule;
+			case 1:
+				rule = 0;
+				do{
+				std::cout<<"Please enter a rule between 0 and 255 (30, 90 or 110 recommended): ";
+				std::cin >> rule;
+				if(rule < 0 || rule > 255)
+					std::cout<<"Rule must be between 0 and 255!"<<std::endl;
+				}while(rule < 0 || rule > 255);
+
+				one_dimensional_simulation(rule);
+				break;
+
+			case 2:
+				rule = 0;
+				do{
+					std::cout << "Enter 1 for a random seed or 2 to load seed from file: ";
+					std::cin >> rule;
+					if(rule != 1 && rule != 2){
+						std::cout<<"You must enter either 1 or 2!"<<std::endl;
+					}
+				}while(rule != 1 && rule != 2);
+
+				if(rule == 1){
+					conways_game_of_life(false, true);
+				}
+				else{
+					conways_game_of_life(false, false);
+				}
+				break;
+
+			case 3:
+				rule = 0;
+				do{
+					std::cout << "Enter 1 for a random seed or 2 to load seed from file: ";
+					std::cin >> rule;
+					if(rule != 1 && rule != 2){
+						std::cout<<"You must enter either 1 or 2!"<<std::endl;
+					}
+				}while(rule != 1 && rule != 2);
+
+				if(rule == 1){
+					conways_game_of_life(true, true);
+				}
+				else{
+					conways_game_of_life(true, false);
+				}
+				break;
+
+			case 4:
+				running = false;
+				break;
+
+			default:
+				std::cout<< "Please pick from the options shown!";
+				break;
+
+		}
+
+
 	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));	
 
-	//2D simulation
-	system("clear");
-	std::cout<<"-------- Two dimensional Conways Game of Life --------" << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	conways_game_of_life(false);
 
-	//3D (toroidal) simulation
-	system("clear");
-	std::cout<<"-------- Three dimensional (toroidal) Conways Game of Life --------" << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	conways_game_of_life(true);
 	return 0;
 }
 
@@ -72,8 +127,6 @@ int main(){
 int one_dimensional_simulation(int rule_num){
 
 	#define ONE_D_NUM_GENERATIONS 32
-
-	//1D simulation
 
 	if(rule_num < 0 || rule_num > 255){
 		return 1;
@@ -122,7 +175,7 @@ int one_dimensional_simulation(int rule_num){
 }
 
 
-int conways_game_of_life(bool is_three_d){
+int conways_game_of_life(bool is_three_d, bool is_random){
 
 	//initialise parent and child grids to all zeros
 	int parent_grid[y_dim][x_dim] = {{0}};
@@ -134,27 +187,34 @@ int conways_game_of_life(bool is_three_d){
 	int neighbour_count;
 
 
-	/*
-	UNCOMMENT THIS AND COMMENT OUT READ_FROM_FILE LINE TO SEED WITH RANDOM VALUES
-
-	//fill parent grid with random values
-	for(int i = 0; i < y_dim; i++){
-		for(int j = 0; j < x_dim; j++){
-			parent_grid[i][j] = std::rand()%2;
+	
+	if(is_random){
+		//fill parent grid with random values
+		for(int i = 0; i < y_dim; i++){
+			for(int j = 0; j < x_dim; j++){
+				parent_grid[i][j] = std::rand()%2;
+			}
 		}
 	}
-	*/
+	else{
+		std::string file_name;
+		std::cout<<"Please enter a file name to load as a seed (must be 120 columns by 60 rows): ";
+		std::cin >> file_name;
+		//read seed from file
+		read_from_file(file_name, parent_grid);
 
-	//read seed from file
-	read_from_file("quaser.txt", parent_grid);
+		//display initial generation for 500 milliseconds
+		display_generation_two_dim(parent_grid);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
 
 	//display initial generation for 500 milliseconds
 	display_generation_two_dim(parent_grid);
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 
-	//loop for 20 generations
-	for(int num_gen = 0; num_gen < 20; num_gen++){
+	//loop for 32 generations
+	for(int num_gen = 0; num_gen < 200; num_gen++){
 
 		//for every cell in parent grid, count its neighbours and then check against the rules to 
 		//assign state to corresponding cell in child grid
@@ -189,7 +249,7 @@ int conways_game_of_life(bool is_three_d){
 
 		//display generated grid
 		display_generation_two_dim(child_grid);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 		//swap parent and child grid and reset child grid
 		for(int i = 0; i < y_dim; i++){
@@ -211,32 +271,43 @@ int count_neighbours(int grid[y_dim][x_dim], int y, int x, bool is_three_d){
 	//counts love cells around cell at grid[y][x]
 	//if is_three_d is true, the cells at edge will have neighbours at the opposing edge of the grid
 	//creating a toroidal grid
-	for(int i = -1; i < 2; i++){
-		for(int j = -1; j < 2; j++){
+	for(int i = y-1; i <= y+1; i++){
+		for(int j = x-1; j <= x+1; j++){
 			if(is_three_d){
-				if(i == 0 && j == 0){
+				if(i == y && j == x){
 					continue;
 				}
-				if(grid[(y+i)%y_dim][(x+j)%x_dim] == 1){
+				if(grid[(i+y_dim)%y_dim][(j+x_dim)%x_dim] == 1){
 					count++;
 				}
 			}
 			else{
-				if(x == 0 && j < 0){
+				//if x is on left boundry, do not count left hand neighbours
+				if(i < 0){
 					continue;
 				}
-				else if(x == x_dim-1 && j > 0){
+				//if x is on right boundry, do not count right hand neighbours
+				else if(i > y_dim){
 					continue;
 				}
-				if(y == 0 && i < 0){
+
+				//if y is on top boundry, do not count neighbours above
+				if(j < 0){
 					continue;
 				}
-				else if(y == y_dim-1 && i > 0){
+				//if y is on bottom boundry, do not count neighbours below
+				else if(j > x_dim){
 					continue;
 				}
-				if(grid[y+i][x+j] == 1){
+
+				//do not count self as neighbour
+				if(i == y && j == x){
+					continue;
+				}
+				else if(grid[i][j] == 1){
 					count++;
 				}
+
 			}
 		}
 	}
